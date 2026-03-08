@@ -61,3 +61,17 @@ class Report(Base):
     content_markdown = Column(Text)
     google_sheet_url = Column(String(255))
     created_at = Column(DateTime, server_default=func.now())
+
+class SystemConfig(Base):
+    __tablename__ = "system_configs"
+    key = Column(String(100), primary_key=True)
+    value = Column(Text)
+    description = Column(String(255), nullable=True)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    @classmethod
+    async def get_value(cls, db, key: str, default=None):
+        from sqlalchemy.future import select
+        result = await db.execute(select(cls).where(cls.key == key))
+        config = result.scalars().first()
+        return config.value if config else default

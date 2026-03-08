@@ -1,8 +1,9 @@
 import asyncio
 import datetime
+import os
 from sqlalchemy.future import select
 from backend.database import AsyncSessionLocal
-from backend.models import Platform, CommunityTarget, Channel, CollectedData, Report
+from backend.models import Platform, CommunityTarget, Channel, CollectedData, Report, SystemConfig
 from scrapers.daum_cafe import DaumCafeScraper
 from scrapers.discord_scraper import DiscordScraper
 from backend.llm_service import LLMService
@@ -16,8 +17,12 @@ async def run_daily_analysis():
         platforms = await db.execute(select(Platform).where(Platform.is_active == True))
         platforms = platforms.scalars().all()
 
-        llm = LLMService()
-        slack = SlackNotifier(os.getenv("SLACK_TOKEN")) if os.getenv("SLACK_TOKEN") else None
+        llm_provider = await SystemConfig.get_value(db, "LLM_PROVIDER", "openai")
+        llm = LLMService(provider=llm_provider)
+
+        slack_token = await SystemConfig.get_value(db, "SLACK_TOKEN") or os.getenv("SLACK_TOKEN")
+        slack_channel_id = await SystemConfig.get_value(db, "SLACK_CHANNEL_ID") or os.getenv("SLACK_CHANNEL_ID")
+        slack = SlackNotifier(slack_token) if slack_token else None
 
         analysis_results = []
 
@@ -29,10 +34,20 @@ async def run_daily_analysis():
             if platform.name == 'daum':
                 scraper = DaumCafeScraper(headless=True)
                 await scraper.start()
-                # Assuming login info is in platform.config or .env
-                await scraper.login(os.getenv("DAUM_ID"), os.getenv("DAUM_PW"))
+
+                daum_id = platform.config.get("daum_id") if platform.config else None
+                daum_pw = platform.config.get("daum_pw") if platform.config else None
+
+                if not daum_id or not daum_pw:
+                    daum_id = os.getenv("DAUM_ID")
+                    daum_pw = os.getenv("DAUM_PW")
+
+                await scraper.login(daum_id, daum_pw)
             elif platform.name == 'discord':
-                scraper = DiscordScraper(os.getenv("DISCORD_TOKEN"))
+                discord_token = platform.config.get("discord_token") if platform.config else None
+                if not discord_token:
+                    discord_token = os.getenv("DISCORD_TOKEN")
+                scraper = DiscordScraper(discord_token)
 
             if not scraper:
                 continue
@@ -58,7 +73,7 @@ async def run_daily_analysis():
 
                     # Analyze using LLM
                     if posts:
-                        analysis = await llm.analyze_content(posts, target_lang=channel.language)
+                        analysis = await llm.analyze_content(posts, target_lang=channel.language, db=db)
                         analysis_results.append({
                             'platform': platform.name,
                             'target': target.name,
@@ -77,7 +92,7 @@ async def run_daily_analysis():
 
         # 7. Notify via Slack
         if slack and analysis_results:
-            slack.post_message(os.getenv("SLACK_CHANNEL_ID"), f"데일리 커뮤니티 분석 리포트 완료\n\n{report_md[:1000]}...") # Slack limit 40k chars, but let's keep it brief
+            slack.post_message(slack_channel_id, f"데일리 커뮤니티 분석 리포트 완료\n\n{report_md[:1000]}...") # Slack limit 40k chars, but let's keep it brief
 
         print("Daily analysis completed successfully.")
 
