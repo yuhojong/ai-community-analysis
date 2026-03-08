@@ -3,8 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import List
 from .database import get_db
-from .models import Platform, CommunityTarget, Channel
-from .schemas import PlatformResponse, TargetResponse, ChannelResponse, PlatformBase, TargetBase, ChannelBase
+from .models import Platform, CommunityTarget, Channel, SystemConfig
+from .schemas import (
+    PlatformResponse, TargetResponse, ChannelResponse, PlatformBase, TargetBase, ChannelBase,
+    SystemConfigBase, SystemConfigResponse
+)
 from .auth import get_current_user
 
 router = APIRouter(prefix="/config", tags=["config"])
@@ -47,3 +50,26 @@ async def create_channel(channel: ChannelBase, db: AsyncSession = Depends(get_db
     await db.commit()
     await db.refresh(new_channel)
     return new_channel
+
+@router.get("/system", response_model=List[SystemConfigResponse])
+async def get_system_configs(db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
+    result = await db.execute(select(SystemConfig))
+    return result.scalars().all()
+
+@router.post("/system", response_model=SystemConfigResponse)
+async def update_system_config(config: SystemConfigBase, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
+    # Upsert logic
+    result = await db.execute(select(SystemConfig).where(SystemConfig.key == config.key))
+    existing_config = result.scalars().first()
+
+    if existing_config:
+        existing_config.value = config.value
+        existing_config.description = config.description
+        new_config = existing_config
+    else:
+        new_config = SystemConfig(**config.dict())
+        db.add(new_config)
+
+    await db.commit()
+    await db.refresh(new_config)
+    return new_config

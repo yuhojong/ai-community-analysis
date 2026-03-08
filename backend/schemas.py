@@ -30,6 +30,16 @@ class PlatformResponse(PlatformBase):
     class Config:
         from_attributes = True
 
+class SystemConfigBase(BaseModel):
+    key: str
+    value: str
+    description: Optional[str] = None
+
+class SystemConfigResponse(SystemConfigBase):
+    updated_at: datetime
+    class Config:
+        from_attributes = True
+
 class TargetBase(BaseModel):
     platform_id: int
     name: str

@@ -6,7 +6,22 @@ from typing import List, Optional
 class LLMService:
     def __init__(self, provider: str = "openai", api_key: Optional[str] = None):
         self.provider = provider.lower()
-        self.api_key = api_key or (os.getenv("OPENAI_API_KEY") if self.provider == "openai" else os.getenv("GEMINI_API_KEY"))
+        self.api_key = api_key
+        self.client = None
+        self.model = None
+
+    async def _ensure_client(self, db=None):
+        if self.client or self.model:
+            return
+
+        if not self.api_key:
+            if db:
+                from .models import SystemConfig
+                key_name = "OPENAI_API_KEY" if self.provider == "openai" else "GEMINI_API_KEY"
+                self.api_key = await SystemConfig.get_value(db, key_name)
+
+            if not self.api_key:
+                self.api_key = os.getenv("OPENAI_API_KEY") if self.provider == "openai" else os.getenv("GEMINI_API_KEY")
 
         if self.provider == "openai":
             self.client = AsyncOpenAI(api_key=self.api_key)
@@ -14,7 +29,8 @@ class LLMService:
             genai.configure(api_key=self.api_key)
             self.model = genai.GenerativeModel('gemini-pro')
 
-    async def analyze_content(self, content_list: List[dict], target_lang: str = "ko") -> str:
+    async def analyze_content(self, content_list: List[dict], target_lang: str = "ko", db=None) -> str:
+        await self._ensure_client(db)
         if not content_list:
             return "분석할 데이터가 없습니다."
 
