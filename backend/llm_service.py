@@ -1,0 +1,48 @@
+import os
+from openai import AsyncOpenAI
+import google.generativeai as genai
+from typing import List, Optional
+
+class LLMService:
+    def __init__(self, provider: str = "openai", api_key: Optional[str] = None):
+        self.provider = provider.lower()
+        self.api_key = api_key or (os.getenv("OPENAI_API_KEY") if self.provider == "openai" else os.getenv("GEMINI_API_KEY"))
+
+        if self.provider == "openai":
+            self.client = AsyncOpenAI(api_key=self.api_key)
+        elif self.provider == "gemini":
+            genai.configure(api_key=self.api_key)
+            self.model = genai.GenerativeModel('gemini-pro')
+
+    async def analyze_content(self, content_list: List[dict], target_lang: str = "ko") -> str:
+        if not content_list:
+            return "분석할 데이터가 없습니다."
+
+        formatted_content = "\n".join([f"- {item['author']}: {item['content']}" for item in content_list])
+
+        prompt = f"""
+다음은 커뮤니티에서 수집된 게시글/메시지들입니다.
+이 내용들을 바탕으로 주요 동향과 사용자 의견을 요약하고 분석해 주세요.
+결과는 반드시 {target_lang} 언어로 작성해 주세요.
+
+수집된 데이터:
+{formatted_content}
+
+리포트 형식:
+1. 주요 요약
+2. 상세 분석 (긍정/부정 여론 포함)
+3. 특징적인 키워드 및 주제
+"""
+
+        if self.provider == "openai":
+            response = await self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return response.choices[0].message.content
+
+        elif self.provider == "gemini":
+            response = await self.model.generate_content_async(prompt)
+            return response.text
+
+        return "Unsupported LLM Provider"
