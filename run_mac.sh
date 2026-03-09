@@ -27,6 +27,12 @@ echo "Installing backend dependencies..."
 pip install --upgrade pip
 pip install -r backend/requirements.txt
 
+# Ensure .env exists before starting services
+if [ ! -f ".env" ]; then
+    echo "Generating .env file..."
+    python3 -c "import backend.database"
+fi
+
 # 4. Start backend server
 echo "Starting FastAPI backend..."
 PYTHONPATH=. uvicorn backend.main:app --host 0.0.0.0 --port 8000 &
