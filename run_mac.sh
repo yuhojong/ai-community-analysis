@@ -20,12 +20,12 @@ pip install -r backend/requirements.txt
 
 # 4. Start backend server
 echo "Starting FastAPI backend..."
-PYTHONPATH=. uvicorn backend.main:app --host 0.0.0.0 --port 8000 &
+PYTHONPATH=. uvicorn backend.main:app --host 0.0.0.0 --port 8000 > backend.log 2>&1 < /dev/null &
 BACKEND_PID=$!
 
 # 5. Start scheduler in background
 echo "Starting scheduler..."
-PYTHONPATH=. python3 backend/scheduler.py &
+PYTHONPATH=. python3 backend/scheduler.py > scheduler.log 2>&1 < /dev/null &
 SCHEDULER_PID=$!
 
 # 6. Start frontend
@@ -35,7 +35,7 @@ if [ ! -d "node_modules" ]; then
     echo "Installing frontend dependencies..."
     npm install
 fi
-npm start &
+BROWSER=none npm start > ../frontend.log 2>&1 < /dev/null &
 FRONTEND_PID=$!
 cd ..
 
