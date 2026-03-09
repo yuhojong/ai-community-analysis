@@ -11,7 +11,7 @@ export MYSQL_PASSWORD=your_secure_password
 export MYSQL_DB=community_db
 export SECRET_KEY=your_random_secret
 
-PYTHONPATH=. python3 backend/scripts/create_admin.py --username admin --password your_password
+PYTHONPATH=. python3 backend/scripts/create_admin.py --username admin
 ```
 
 ## 2. 웹 대시보드 로그인
