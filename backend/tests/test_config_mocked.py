@@ -34,9 +34,11 @@ async def test_run_analysis_logic_mocked():
     from backend.scripts.run_analysis import run_daily_analysis
     from backend.models import Platform, SystemConfig
 
-    mock_platforms = [
-        MagicMock(spec=Platform, name="daum", id=1, is_active=True, config={"daum_id": "db_id", "daum_pw": "db_pw"})
-    ]
+    mock_platform = MagicMock(name="daum")
+    mock_platform.id = 1
+    mock_platform.is_active = True
+    mock_platform.config = {"daum_id": "db_id", "daum_pw": "db_pw"}
+    mock_platforms = [mock_platform]
 
     with patch("backend.scripts.run_analysis.AsyncSessionLocal") as mock_session_cls, \
          patch("backend.scripts.run_analysis.select") as mock_select, \

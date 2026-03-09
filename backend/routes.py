@@ -19,7 +19,7 @@ async def get_platforms(db: AsyncSession = Depends(get_db), current_user = Depen
 
 @router.post("/platforms", response_model=PlatformResponse)
 async def create_platform(platform: PlatformBase, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_active_admin_user)):
-    new_platform = Platform(**platform.dict())
+    new_platform = Platform(**platform.model_dump())
     db.add(new_platform)
     await db.commit()
     await db.refresh(new_platform)
@@ -32,7 +32,7 @@ async def get_targets(db: AsyncSession = Depends(get_db), current_user = Depends
 
 @router.post("/targets", response_model=TargetResponse)
 async def create_target(target: TargetBase, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_active_admin_user)):
-    new_target = CommunityTarget(**target.dict())
+    new_target = CommunityTarget(**target.model_dump())
     db.add(new_target)
     await db.commit()
     await db.refresh(new_target)
@@ -45,7 +45,7 @@ async def get_channels(db: AsyncSession = Depends(get_db), current_user = Depend
 
 @router.post("/channels", response_model=ChannelResponse)
 async def create_channel(channel: ChannelBase, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_active_admin_user)):
-    new_channel = Channel(**channel.dict())
+    new_channel = Channel(**channel.model_dump())
     db.add(new_channel)
     await db.commit()
     await db.refresh(new_channel)
@@ -67,7 +67,7 @@ async def update_system_config(config: SystemConfigBase, db: AsyncSession = Depe
         existing_config.description = config.description
         new_config = existing_config
     else:
-        new_config = SystemConfig(**config.dict())
+        new_config = SystemConfig(**config.model_dump())
         db.add(new_config)
 
     await db.commit()
