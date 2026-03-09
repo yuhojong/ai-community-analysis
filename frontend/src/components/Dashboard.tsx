@@ -1,9 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
+interface Platform {
+    id: number;
+    name: string;
+}
+
+interface Target {
+    id: number;
+    name: string;
+    target_url: string;
+}
+
 const Dashboard: React.FC = () => {
-    const [platforms, setPlatforms] = useState([]);
-    const [targets, setTargets] = useState([]);
+    const [platforms, setPlatforms] = useState<Platform[]>([]);
+    const [targets, setTargets] = useState<Target[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -25,9 +36,9 @@ const Dashboard: React.FC = () => {
         <div>
             <h2>Dashboard</h2>
             <h3>Platforms</h3>
-            <ul>{platforms.map((p: any) => <li key={p.id}>{p.name}</li>)}</ul>
+            <ul>{platforms.map((p: Platform) => <li key={p.id}>{p.name}</li>)}</ul>
             <h3>Targets</h3>
-            <ul>{targets.map((t: any) => <li key={t.id}>{t.name} ({t.target_url})</li>)}</ul>
+            <ul>{targets.map((t: Target) => <li key={t.id}>{t.name} ({t.target_url})</li>)}</ul>
         </div>
     );
 };
