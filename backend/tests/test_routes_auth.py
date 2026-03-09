@@ -81,7 +81,11 @@ def test_admin_user_allowed():
         yield db
 
     from backend.database import get_db
+    from backend.auth import oauth2_scheme, get_current_user, get_current_active_admin_user
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[oauth2_scheme] = lambda: "dummy-token"
+    app.dependency_overrides[get_current_user] = override_get_admin_user_direct
+    app.dependency_overrides[get_current_active_admin_user] = override_get_admin_user_direct
 
-    response = client.get("/config/platforms")
+    response = client.get("/config/platforms", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 200

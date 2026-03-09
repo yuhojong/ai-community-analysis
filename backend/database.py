@@ -1,4 +1,5 @@
 import os
+import secrets
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -11,8 +12,16 @@ EXAMPLE_ENV_PATH = os.path.join(BASE_DIR, "example.env")
 
 if not os.path.exists(ENV_PATH):
     if os.path.exists(EXAMPLE_ENV_PATH):
-        shutil.copy(EXAMPLE_ENV_PATH, ENV_PATH)
-        print(f"Created {ENV_PATH} from example.env")
+        with open(EXAMPLE_ENV_PATH, 'r') as example_file:
+            content = example_file.read()
+
+        # Generate a secure random secret key
+        secure_key = secrets.token_urlsafe(32)
+        content = content.replace("your_secret_key_here", secure_key)
+
+        with open(ENV_PATH, 'w') as env_file:
+            env_file.write(content)
+        print(f"Created {ENV_PATH} from example.env with a securely generated SECRET_KEY")
     else:
         with open(ENV_PATH, "w") as f:
             pass

@@ -12,6 +12,10 @@ for port in 8000 3000; do
     fi
 done
 
+# Generate .env file if it doesn't exist
+echo "Initializing environment configuration..."
+PYTHONPATH=. python3 -c "import backend.database"
+
 # 1. Start backend server
 echo "Starting FastAPI backend..."
 PYTHONPATH=. uvicorn backend.main:app --host 0.0.0.0 --port 8000 &
