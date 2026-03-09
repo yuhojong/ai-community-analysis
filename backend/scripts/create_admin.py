@@ -1,6 +1,7 @@
 import asyncio
 import argparse
 import getpass
+import sys
 from backend.database import AsyncSessionLocal
 from backend.models import User
 from backend.auth import get_password_hash
@@ -25,12 +26,16 @@ def main():
     parser.add_argument("--username", required=True, help="Admin username")
     args = parser.parse_args()
 
-    password = getpass.getpass("Admin password: ")
-    if not password:
-        print("Password cannot be empty.")
-        return
+    try:
+        password = getpass.getpass("Admin password: ")
+        if not password:
+            print("Password cannot be empty.")
+            return
 
-    asyncio.run(create_admin(args.username, password))
+        asyncio.run(create_admin(args.username, password))
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.")
+        sys.exit(0)
 
 if __name__ == "__main__":
     main()
