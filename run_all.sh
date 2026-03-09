@@ -3,6 +3,15 @@
 # Ensure we are in the project root
 cd "$(dirname "$0")"
 
+echo "Cleaning up any existing processes on ports 8000 and 3000..."
+for port in 8000 3000; do
+    pids=$(lsof -t -i:$port 2>/dev/null)
+    if [ ! -z "$pids" ]; then
+        echo "Killing existing process on port $port..."
+        kill -9 $pids 2>/dev/null || true
+    fi
+done
+
 # 1. Start backend server
 echo "Starting FastAPI backend..."
 PYTHONPATH=. uvicorn backend.main:app --host 0.0.0.0 --port 8000 &
@@ -21,7 +30,21 @@ FRONTEND_PID=$!
 cd ..
 
 # Handle shutdown
-trap "kill $BACKEND_PID $SCHEDULER_PID $FRONTEND_PID 2>/dev/null; exit" INT TERM EXIT
+cleanup() {
+    echo "Shutting down servers..."
+    kill $BACKEND_PID $SCHEDULER_PID $FRONTEND_PID 2>/dev/null || true
+
+    # Kill any lingering processes on ports 8000 and 3000
+    for port in 8000 3000; do
+        pids=$(lsof -t -i:$port 2>/dev/null)
+        if [ ! -z "$pids" ]; then
+            kill -9 $pids 2>/dev/null || true
+        fi
+    done
+    exit
+}
+
+trap cleanup INT TERM EXIT
 
 echo ""
 echo "=========================================================="
