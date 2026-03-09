@@ -81,7 +81,20 @@ def test_admin_user_allowed():
         yield db
 
     from backend.database import get_db
+    from backend.auth import oauth2_scheme, get_current_user, get_current_active_admin_user
+    app.dependency_overrides.clear() # clear any old ones first
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[oauth2_scheme] = lambda: "dummy-token"
+    app.dependency_overrides[get_current_user] = override_get_admin_user_direct
+    app.dependency_overrides[get_current_active_admin_user] = override_get_admin_user_direct
 
-    response = client.get("/config/platforms")
+    # override directly in router dependencies if necessary
+    for route in app.router.routes:
+        if getattr(route, "path", None) == "/config/platforms" and "GET" in getattr(route, "methods", []):
+            dep = inspect.signature(route.endpoint).parameters['current_user'].default.dependency
+            app.dependency_overrides[dep] = override_get_admin_user_direct
+            db_dep = inspect.signature(route.endpoint).parameters['db'].default.dependency
+            app.dependency_overrides[db_dep] = override_get_db
+
+    response = client.get("/config/platforms", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 200
