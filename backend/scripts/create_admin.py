@@ -1,5 +1,6 @@
 import asyncio
 import argparse
+import getpass
 from backend.database import AsyncSessionLocal
 from backend.models import User
 from backend.auth import get_password_hash
@@ -19,10 +20,17 @@ async def create_admin(username, password):
         await db.commit()
         print(f"Admin user {username} created successfully.")
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Create an admin user")
     parser.add_argument("--username", required=True, help="Admin username")
-    parser.add_argument("--password", required=True, help="Admin password")
     args = parser.parse_args()
 
-    asyncio.run(create_admin(args.username, args.password))
+    password = getpass.getpass("Admin password: ")
+    if not password:
+        print("Password cannot be empty.")
+        return
+
+    asyncio.run(create_admin(args.username, password))
+
+if __name__ == "__main__":
+    main()
