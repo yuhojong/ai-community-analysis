@@ -13,10 +13,12 @@ app = FastAPI(title="Community Insights Analyzer")
 
 # Authentication helper
 async def authenticate_user(username, password, db: AsyncSession):
-    from .auth import verify_password
+    from .auth import verify_password, pwd_context
     result = await db.execute(select(User).where(User.username == username))
     user = result.scalars().first()
     if not user:
+        # Mitigate timing attacks by performing a dummy verification
+        pwd_context.dummy_verify()
         return False
     if not verify_password(password, user.hashed_password):
         return False
