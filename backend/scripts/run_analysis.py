@@ -26,9 +26,20 @@ async def run_daily_analysis():
 
         analysis_results = []
 
+        platform_ids = [p.id for p in platforms]
+        targets_by_platform = {}
+
+        if platform_ids:
+            all_targets_result = await db.execute(
+                select(CommunityTarget)
+                .where(CommunityTarget.platform_id.in_(platform_ids), CommunityTarget.is_active == True)
+            )
+            all_targets = all_targets_result.scalars().all()
+            for target in all_targets:
+                targets_by_platform.setdefault(target.platform_id, []).append(target)
+
         for platform in platforms:
-            targets = await db.execute(select(CommunityTarget).where(CommunityTarget.platform_id == platform.id, CommunityTarget.is_active == True))
-            targets = targets.scalars().all()
+            targets = targets_by_platform.get(platform.id, [])
 
             scraper = None
             if platform.name == 'daum':
