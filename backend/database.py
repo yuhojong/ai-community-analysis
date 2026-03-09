@@ -1,7 +1,22 @@
 import os
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+import shutil
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ENV_PATH = os.path.join(BASE_DIR, ".env")
+EXAMPLE_ENV_PATH = os.path.join(BASE_DIR, "example.env")
+
+if not os.path.exists(ENV_PATH):
+    if os.path.exists(EXAMPLE_ENV_PATH):
+        shutil.copy(EXAMPLE_ENV_PATH, ENV_PATH)
+        print(f"Created {ENV_PATH} from example.env")
+    else:
+        with open(ENV_PATH, "w") as f:
+            pass
+        print(f"Created empty {ENV_PATH}")
 
 class Settings(BaseSettings):
     MYSQL_USER: str
@@ -13,8 +28,10 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(
+        env_file=ENV_PATH,
+        extra="ignore"
+    )
 
 settings = Settings()
 
