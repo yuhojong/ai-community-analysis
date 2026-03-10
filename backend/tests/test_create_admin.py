@@ -15,6 +15,7 @@ sys.modules['sqlalchemy'] = MagicMock()
 sys.modules['sqlalchemy.future'] = MagicMock()
 sys.modules['sqlalchemy.ext.asyncio'] = MagicMock()
 sys.modules['sqlalchemy.orm'] = MagicMock()
+sys.modules['sqlalchemy.exc'] = MagicMock()
 sys.modules['pydantic_settings'] = MagicMock()
 
 # Now we can import main

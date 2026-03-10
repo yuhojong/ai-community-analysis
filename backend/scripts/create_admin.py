@@ -2,7 +2,7 @@ import asyncio
 import argparse
 import getpass
 import sys
-from backend.database import AsyncSessionLocal
+from backend.database import AsyncSessionLocal, engine
 from backend.models import User
 from backend.auth import get_password_hash
 from sqlalchemy.future import select
@@ -29,6 +29,8 @@ async def create_admin(username, password):
     except Exception as e:
         print(f"\nAn unexpected error occurred: {e}", file=sys.stderr)
         sys.exit(1)
+    finally:
+        await engine.dispose()
 
 def main():
     parser = argparse.ArgumentParser(description="Create an admin user")
