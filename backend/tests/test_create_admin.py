@@ -12,6 +12,7 @@ sys.modules['backend.database'] = mock_db
 sys.modules['backend.models'] = mock_models
 sys.modules['backend.auth'] = mock_auth
 sys.modules['sqlalchemy'] = MagicMock()
+sys.modules['sqlalchemy.exc'] = MagicMock()
 sys.modules['sqlalchemy.future'] = MagicMock()
 sys.modules['sqlalchemy.ext.asyncio'] = MagicMock()
 sys.modules['sqlalchemy.orm'] = MagicMock()
