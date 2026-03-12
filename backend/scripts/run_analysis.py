@@ -107,5 +107,12 @@ async def run_daily_analysis():
 
         print("Daily analysis completed successfully.")
 
+    try:
+        # Needs to dispose of the engine connection pool
+        from backend.database import engine
+        await engine.dispose()
+    except Exception as e:
+        print(f"Error during engine disposal: {e}")
+
 if __name__ == "__main__":
     asyncio.run(run_daily_analysis())
