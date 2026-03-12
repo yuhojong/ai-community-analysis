@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List, Dict
 from datetime import datetime
 
@@ -13,8 +13,7 @@ class UserInDB(UserBase):
     is_admin: bool
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class Token(BaseModel):
     access_token: str
@@ -27,8 +26,7 @@ class PlatformBase(BaseModel):
 
 class PlatformResponse(PlatformBase):
     id: int
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class SystemConfigBase(BaseModel):
     key: str
@@ -37,8 +35,7 @@ class SystemConfigBase(BaseModel):
 
 class SystemConfigResponse(SystemConfigBase):
     updated_at: datetime
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class TargetBase(BaseModel):
     platform_id: int
@@ -48,8 +45,7 @@ class TargetBase(BaseModel):
 
 class TargetResponse(TargetBase):
     id: int
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ChannelBase(BaseModel):
     target_id: int
@@ -60,5 +56,4 @@ class ChannelBase(BaseModel):
 
 class ChannelResponse(ChannelBase):
     id: int
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
