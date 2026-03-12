@@ -17,6 +17,8 @@ async def init_db():
     except Exception as e:
         print(f"\nAn unexpected error occurred: {e}", file=sys.stderr)
         sys.exit(1)
+    finally:
+        await engine.dispose()
 
 if __name__ == "__main__":
     asyncio.run(init_db())
