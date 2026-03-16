@@ -10,7 +10,6 @@ python-multipart
 playwright
 discord.py
 openai
-google-generativeai
 gspread
 oauth2client
 slack_sdk
@@ -18,3 +17,4 @@ apscheduler
 python-dotenv
 pytest
 pytest-asyncio
+google-genai
