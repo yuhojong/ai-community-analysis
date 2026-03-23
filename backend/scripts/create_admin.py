@@ -1,14 +1,17 @@
+"""Script to create an admin user in the database."""
+
 import asyncio
 import argparse
 import getpass
 import sys
+from sqlalchemy.future import select
+from sqlalchemy.exc import OperationalError
 from backend.database import AsyncSessionLocal, engine
 from backend.models import User
 from backend.auth import get_password_hash
-from sqlalchemy.future import select
-from sqlalchemy.exc import OperationalError
 
 async def create_admin(username, password):
+    """Creates a new admin user interactively."""
     try:
         async with AsyncSessionLocal() as db:
             result = await db.execute(select(User).where(User.username == username))
@@ -22,9 +25,13 @@ async def create_admin(username, password):
             db.add(new_user)
             await db.commit()
             print(f"Admin user {username} created successfully.")
-    except OperationalError as e:
+    except OperationalError:
         print("\nError: Could not connect to the database.", file=sys.stderr)
-        print("Please ensure that the MySQL server is running and the credentials in your .env file are correct.", file=sys.stderr)
+        print(
+            "Please ensure that the MySQL server is running "
+            "and the credentials in your .env file are correct.",
+            file=sys.stderr
+        )
         sys.exit(1)
     except Exception as e:
         print(f"\nAn unexpected error occurred: {e}", file=sys.stderr)
@@ -33,6 +40,7 @@ async def create_admin(username, password):
         await engine.dispose()
 
 def main():
+    """Parses arguments and runs the create_admin coroutine."""
     parser = argparse.ArgumentParser(description="Create an admin user")
     parser.add_argument("--username", required=True, help="Admin username")
     args = parser.parse_args()

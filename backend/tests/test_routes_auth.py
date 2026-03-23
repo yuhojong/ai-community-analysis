@@ -1,22 +1,26 @@
+"""Tests for authentication and authorization routes."""
+
+import inspect
+from unittest.mock import AsyncMock, MagicMock
+import pytest
+from fastapi import HTTPException, status
 from fastapi.testclient import TestClient
 from backend.main import app
 from backend.auth import get_current_active_admin_user, get_current_user, oauth2_scheme
 from backend.database import get_db
 from backend.models import User
-import pytest
-import inspect
-from fastapi import HTTPException, status
-from unittest.mock import AsyncMock, MagicMock
 
 client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def isolate_deps():
+    """Isolate dependencies for each test."""
     app.dependency_overrides = {}
     yield
     app.dependency_overrides = {}
 
 def test_regular_user_forbidden():
+    """Test that regular users cannot access admin endpoints."""
     async def override_forbidden():
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -31,7 +35,8 @@ def test_regular_user_forbidden():
 
     # Also override by inspecting the route just in case
     for route in app.router.routes:
-        if getattr(route, "path", None) == "/config/platforms" and "GET" in getattr(route, "methods", []):
+        if (getattr(route, "path", None) == "/config/platforms" and
+                "GET" in getattr(route, "methods", [])):
             dep = inspect.signature(route.endpoint).parameters['current_user'].default.dependency
             app.dependency_overrides[dep] = override_forbidden
             break
@@ -40,6 +45,7 @@ def test_regular_user_forbidden():
     assert response.status_code == 403
 
 def test_admin_user_allowed():
+    """Test that admin users can access admin endpoints."""
     async def override_get_admin_user_direct():
         return User(username="admin", is_admin=True)
 
@@ -62,7 +68,8 @@ def test_admin_user_allowed():
 
     # Also override by inspecting the route to ensure exact match
     for route in app.router.routes:
-        if getattr(route, "path", None) == "/config/platforms" and "GET" in getattr(route, "methods", []):
+        if (getattr(route, "path", None) == "/config/platforms" and
+                "GET" in getattr(route, "methods", [])):
             sig = inspect.signature(route.endpoint)
 
             if 'current_user' in sig.parameters:

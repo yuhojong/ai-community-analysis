@@ -1,22 +1,29 @@
-import pytest
+"""Tests for authentication timing attack mitigation."""
+
 import time
 from unittest.mock import AsyncMock, patch
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.main import authenticate_user
 from backend.models import User
 
 @pytest.mark.asyncio
 async def test_authenticate_user_timing():
+    """Test timing attacks mitigation during authentication."""
     db = AsyncMock(spec=AsyncSession)
 
-    class MockResult:
+    class MockResult:  # pylint: disable=too-few-public-methods
+        """Mock database result."""
         def __init__(self, user):
             self.user = user
         def scalars(self):
-            class MockScalars:
+            """Mock scalars() method."""
+            class MockScalars:  # pylint: disable=too-few-public-methods
+                """Mock scalars iterator."""
                 def __init__(self, u):
                     self.u = u
                 def first(self):
+                    """Mock first() method."""
                     return self.u
             return MockScalars(self.user)
 
