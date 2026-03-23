@@ -1,21 +1,23 @@
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from backend.llm_service import LLMService
+"""Tests for mocked configuration in the backend."""
+
 import os
+from unittest.mock import AsyncMock, MagicMock, patch
+import pytest
+from backend.llm_service import LLMService
 
 @pytest.mark.asyncio
 async def test_llm_service_config_fallback_mocked():
+    """Test LLMService falls back to environment variables when DB config is not present."""
     # Mock environment variable
     with patch.dict(os.environ, {"OPENAI_API_KEY": "env_key"}):
         service = LLMService(provider="openai")
         # Without DB, should fallback to env
-        await service._ensure_client(db=None)
+        await service._ensure_client(db=None)  # pylint: disable=protected-access
         assert service.api_key == "env_key"
 
 @pytest.mark.asyncio
 async def test_llm_service_config_db_mocked():
-    from backend.models import SystemConfig
-
+    """Test LLMService correctly fetches API key from DB if available."""
     # Mock DB session
     mock_db = AsyncMock()
 
@@ -24,15 +26,15 @@ async def test_llm_service_config_db_mocked():
         mock_get_value.return_value = "db_key"
 
         service = LLMService(provider="openai")
-        await service._ensure_client(db=mock_db)
+        await service._ensure_client(db=mock_db)  # pylint: disable=protected-access
 
         assert service.api_key == "db_key"
         mock_get_value.assert_called_with(mock_db, "OPENAI_API_KEY")
 
 @pytest.mark.asyncio
 async def test_run_analysis_logic_mocked():
-    from backend.scripts.run_analysis import run_daily_analysis
-    from backend.models import Platform, SystemConfig
+    """Test the execution flow of the run_daily_analysis script."""
+    from backend.scripts.run_analysis import run_daily_analysis  # pylint: disable=import-outside-toplevel
 
     mock_platform = MagicMock(name="daum")
     mock_platform.id = 1
@@ -41,10 +43,10 @@ async def test_run_analysis_logic_mocked():
     mock_platforms = [mock_platform]
 
     with patch("backend.scripts.run_analysis.AsyncSessionLocal") as mock_session_cls, \
-         patch("backend.scripts.run_analysis.select") as mock_select, \
+         patch("backend.scripts.run_analysis.select"), \
          patch("backend.scripts.run_analysis.DaumCafeScraper") as mock_scraper_cls, \
-         patch("backend.scripts.run_analysis.LLMService") as mock_llm_cls, \
-         patch("backend.scripts.run_analysis.ReportGenerator") as mock_report_gen, \
+         patch("backend.scripts.run_analysis.LLMService"), \
+         patch("backend.scripts.run_analysis.ReportGenerator"), \
          patch("backend.models.SystemConfig.get_value", new_callable=AsyncMock) as mock_get_config:
 
         mock_db = AsyncMock()
@@ -61,8 +63,9 @@ async def test_run_analysis_logic_mocked():
             "SLACK_CHANNEL_ID": "chan_id"
         }.get(key, default)
 
-        # We don't need to run the whole thing, just verifying the mocks are hit correctly if we were to run it.
-        # But let's try to run it and expect it to fail later or finish if everything is mocked.
+        # We don't need to run the whole thing, just verifying the mocks are
+        # hit correctly if we were to run it. But let's try to run it and
+        # expect it to fail later or finish if everything is mocked.
 
         # Mock scraper
         mock_scraper = AsyncMock()
