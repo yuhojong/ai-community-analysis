@@ -1,17 +1,17 @@
 import os
 from openai import AsyncOpenAI
-import google.generativeai as genai
+from google import genai
 from typing import List, Optional
 
 class LLMService:
     def __init__(self, provider: str = "openai", api_key: Optional[str] = None):
         self.provider = provider.lower()
         self.api_key = api_key
-        self.client = None
-        self.model = None
+        self.client: Optional[AsyncOpenAI] = None
+        self.gemini_client: Optional[genai.Client] = None
 
     async def _ensure_client(self, db=None):
-        if self.client or self.model:
+        if self.client or self.gemini_client:
             return
 
         if not self.api_key:
@@ -26,8 +26,7 @@ class LLMService:
         if self.provider == "openai":
             self.client = AsyncOpenAI(api_key=self.api_key)
         elif self.provider == "gemini":
-            genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel('gemini-pro')
+            self.gemini_client = genai.Client(api_key=self.api_key)
 
     async def analyze_content(self, content_list: List[dict], target_lang: str = "ko", db=None) -> str:
         await self._ensure_client(db)
@@ -50,15 +49,18 @@ class LLMService:
 3. 특징적인 키워드 및 주제
 """
 
-        if self.provider == "openai":
-            response = await self.client.chat.completions.create(
+        if self.provider == "openai" and self.client:
+            openai_response = await self.client.chat.completions.create(
                 model="gpt-4o",
                 messages=[{"role": "user", "content": prompt}]
             )
-            return response.choices[0].message.content
+            return openai_response.choices[0].message.content or ""
 
-        elif self.provider == "gemini":
-            response = await self.model.generate_content_async(prompt)
-            return response.text
+        elif self.provider == "gemini" and self.gemini_client:
+            gemini_response = await self.gemini_client.aio.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=prompt,
+            )
+            return gemini_response.text
 
         return "Unsupported LLM Provider"
