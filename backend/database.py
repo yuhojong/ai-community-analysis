@@ -42,12 +42,16 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
-settings = Settings()
+import urllib.parse
 
-SQLALCHEMY_DATABASE_URL = f"mysql+aiomysql://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settings.MYSQL_HOST}:{settings.MYSQL_PORT}/{settings.MYSQL_DB}"
+settings = Settings()  # type: ignore
+
+encoded_user = urllib.parse.quote_plus(settings.MYSQL_USER)
+encoded_password = urllib.parse.quote_plus(settings.MYSQL_PASSWORD)
+SQLALCHEMY_DATABASE_URL = f"mysql+aiomysql://{encoded_user}:{encoded_password}@{settings.MYSQL_HOST}:{settings.MYSQL_PORT}/{settings.MYSQL_DB}"
 
 engine = create_async_engine(SQLALCHEMY_DATABASE_URL)
-AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)  # type: ignore
 Base = declarative_base()
 
 async def get_db():
