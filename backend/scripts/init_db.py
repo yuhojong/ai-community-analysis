@@ -1,7 +1,7 @@
 import asyncio
 import sys
 from backend.database import engine, Base
-from backend.models import User, Platform, CommunityTarget, Channel, CollectedData, Report
+from backend import models
 from sqlalchemy.exc import OperationalError
 
 async def init_db():
