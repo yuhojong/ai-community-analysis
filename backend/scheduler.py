@@ -1,6 +1,6 @@
 import logging
 import sys
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler # type: ignore
 import asyncio
 from .scripts.run_analysis import run_daily_analysis
 
