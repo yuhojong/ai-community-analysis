@@ -2,6 +2,7 @@ import os
 import secrets
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+import urllib.parse
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 import shutil
@@ -42,12 +43,16 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
-settings = Settings()
+settings = Settings()  # type: ignore
 
-SQLALCHEMY_DATABASE_URL = f"mysql+aiomysql://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settings.MYSQL_HOST}:{settings.MYSQL_PORT}/{settings.MYSQL_DB}"
+# URL-encode the username and password to handle special characters and prevent injection
+encoded_user = urllib.parse.quote_plus(settings.MYSQL_USER)
+encoded_password = urllib.parse.quote_plus(settings.MYSQL_PASSWORD)
+
+SQLALCHEMY_DATABASE_URL = f"mysql+aiomysql://{encoded_user}:{encoded_password}@{settings.MYSQL_HOST}:{settings.MYSQL_PORT}/{settings.MYSQL_DB}"
 
 engine = create_async_engine(SQLALCHEMY_DATABASE_URL)
-AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)  # type: ignore
 Base = declarative_base()
 
 async def get_db():

@@ -9,7 +9,7 @@ class User(Base):
     username = Column(String(50), unique=True, index=True)
     hashed_password = Column(String(255))
     is_admin = Column(Boolean, default=False)
-    created_at = Column(DateTime, server_default=func.now())
+    created_at = Column(DateTime, server_default=func.now())  # pylint: disable=not-callable
 
 class Platform(Base):
     __tablename__ = "platforms"
@@ -48,7 +48,7 @@ class CollectedData(Base):
     content = Column(Text)
     external_id = Column(String(100)) # Post ID or Message ID
     posted_at = Column(DateTime)
-    collected_at = Column(DateTime, server_default=func.now())
+    collected_at = Column(DateTime, server_default=func.now())  # pylint: disable=not-callable
     metadata_json = Column(JSON)
 
     channel = relationship("Channel", back_populates="collected_data")
@@ -60,14 +60,14 @@ class Report(Base):
     language = Column(String(10))
     content_markdown = Column(Text)
     google_sheet_url = Column(String(255))
-    created_at = Column(DateTime, server_default=func.now())
+    created_at = Column(DateTime, server_default=func.now())  # pylint: disable=not-callable
 
 class SystemConfig(Base):
     __tablename__ = "system_configs"
     key = Column(String(100), primary_key=True)
     value = Column(Text)
     description = Column(String(255), nullable=True)
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())  # pylint: disable=not-callable
 
     @classmethod
     async def get_value(cls, db, key: str, default=None):
