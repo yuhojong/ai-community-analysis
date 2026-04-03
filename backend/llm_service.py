@@ -1,6 +1,6 @@
 import os
 from openai import AsyncOpenAI
-import google.generativeai as genai
+from google import genai
 from typing import List, Optional
 
 class LLMService:
@@ -26,8 +26,7 @@ class LLMService:
         if self.provider == "openai":
             self.client = AsyncOpenAI(api_key=self.api_key)
         elif self.provider == "gemini":
-            genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel('gemini-pro')
+            self.client = genai.Client(api_key=self.api_key)
 
     async def analyze_content(self, content_list: List[dict], target_lang: str = "ko", db=None) -> str:
         await self._ensure_client(db)
@@ -51,14 +50,19 @@ class LLMService:
 """
 
         if self.provider == "openai":
-            response = await self.client.chat.completions.create(
+            assert hasattr(self.client, "chat"), "OpenAI client properly initialized"
+            response = await self.client.chat.completions.create(  # type: ignore
                 model="gpt-4o",
                 messages=[{"role": "user", "content": prompt}]
             )
             return response.choices[0].message.content
 
         elif self.provider == "gemini":
-            response = await self.model.generate_content_async(prompt)
+            assert hasattr(self.client, "aio"), "Gemini client properly initialized"
+            response = await self.client.aio.models.generate_content(  # type: ignore
+                model="gemini-2.0-flash",
+                contents=prompt
+            )
             return response.text
 
         return "Unsupported LLM Provider"
