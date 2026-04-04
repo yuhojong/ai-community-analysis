@@ -1,5 +1,5 @@
-from slack_sdk import WebClient
-from slack_sdk.errors import SlackApiError
+from slack_sdk import WebClient  # type: ignore
+from slack_sdk.errors import SlackApiError  # type: ignore
 import os
 
 class SlackNotifier:
