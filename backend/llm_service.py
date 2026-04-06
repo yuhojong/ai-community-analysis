@@ -57,10 +57,7 @@ class LLMService:
             return response.choices[0].message.content
 
         elif self.provider == "gemini":
-            response = await self.client.aio.models.generate_content(
-                model="gemini-pro",
-                contents=prompt
-            )
+            response = await self.client.aio.models.generate_content(model='gemini-2.5-flash', contents=prompt)
             return response.text
 
         return "Unsupported LLM Provider"
