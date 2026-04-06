@@ -58,7 +58,7 @@ class LLMService:
 
         elif self.provider == "gemini":
             response = await self.client.aio.models.generate_content(
-                model='gemini-2.5-flash',
+                model="gemini-pro",
                 contents=prompt
             )
             return response.text
