@@ -10,6 +10,7 @@ python-multipart
 playwright
 discord.py
 openai
+google-genai
 gspread
 oauth2client
 slack_sdk

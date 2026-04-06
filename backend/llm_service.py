@@ -11,7 +11,7 @@ class LLMService:
         self.model = None
 
     async def _ensure_client(self, db=None):
-        if self.client or self.model:
+        if self.client:
             return
 
         if not self.api_key:
@@ -27,7 +27,6 @@ class LLMService:
             self.client = AsyncOpenAI(api_key=self.api_key)
         elif self.provider == "gemini":
             self.client = genai.Client(api_key=self.api_key)
-            self.model = 'gemini-2.5-flash'
 
     async def analyze_content(self, content_list: List[dict], target_lang: str = "ko", db=None) -> str:
         await self._ensure_client(db)
@@ -59,7 +58,7 @@ class LLMService:
 
         elif self.provider == "gemini":
             response = await self.client.aio.models.generate_content(
-                model=self.model,
+                model='gemini-2.5-flash',
                 contents=prompt
             )
             return response.text
