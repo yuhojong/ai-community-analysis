@@ -27,6 +27,7 @@ class LLMService:
             self.client = AsyncOpenAI(api_key=self.api_key)
         elif self.provider == "gemini":
             self.client = genai.Client(api_key=self.api_key)
+            self.model = 'gemini-2.5-flash'
 
     async def analyze_content(self, content_list: List[dict], target_lang: str = "ko", db=None) -> str:
         await self._ensure_client(db)
@@ -57,7 +58,10 @@ class LLMService:
             return response.choices[0].message.content
 
         elif self.provider == "gemini":
-            response = await self.client.aio.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+            response = await self.client.aio.models.generate_content(
+                model=self.model,
+                contents=prompt
+            )
             return response.text
 
         return "Unsupported LLM Provider"
