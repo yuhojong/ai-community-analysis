@@ -1,4 +1,5 @@
 import os
+from typing import Any
 from openai import AsyncOpenAI
 from google import genai
 from typing import List, Optional
@@ -7,8 +8,8 @@ class LLMService:
     def __init__(self, provider: str = "openai", api_key: Optional[str] = None):
         self.provider = provider.lower()
         self.api_key = api_key
-        self.client = None
-        self.model = None
+        self.client: Any = None
+        self.model: Any = None
 
     async def _ensure_client(self, db=None):
         if self.client:

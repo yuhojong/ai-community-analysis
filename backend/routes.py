@@ -63,8 +63,8 @@ async def update_system_config(config: SystemConfigBase, db: AsyncSession = Depe
     existing_config = result.scalars().first()
 
     if existing_config:
-        existing_config.value = config.value
-        existing_config.description = config.description
+        existing_config.value = str(config.value)  # type: ignore
+        existing_config.description = str(config.description) if config.description else None  # type: ignore
         new_config = existing_config
     else:
         new_config = SystemConfig(**config.model_dump())
